@@ -18,8 +18,10 @@ public:
 	DWORD	SetParameter(const SetParameterStruct* pParam);		
 	DWORD	GetParameter(DWORD dwIndex);					
 	DWORD	ProcessOpenGL(ProcessOpenGLStruct* pGL);
-  DWORD InitGL(const FFGLViewportStruct *vp);
-  DWORD DeInitGL();
+	DWORD InitGL(const FFGLViewportStruct *vp);
+	DWORD DeInitGL();
+
+	DWORD FFGLBridge::UpdateTexture();
 
 	///////////////////////////////////////////////////
 	// Factory method
@@ -35,8 +37,7 @@ public:
 
 protected:	
 	// Parameters
-	float m_Bridge;
-	float m_BridgeY;
+	char m_SharedMemoryName[256];
 	
 	int m_initResources;
 
@@ -46,9 +47,7 @@ protected:
 	HANDLE m_InteropHandle;
 
 	FFGLExtensions m_extensions;
-	GLint m_inputTextureLocation;
 	GLint m_maxCoordsLocation;
-	GLint m_BridgeAmountLocation;
 };
 
 

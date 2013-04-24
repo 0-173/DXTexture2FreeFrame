@@ -3,7 +3,6 @@
 #include "dxConnector.h"
 #include "FFGLBridge.h"
 
-
 #define FFPARAM_Bridge  (0)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -12,13 +11,13 @@
 
 static CFFGLPluginInfo PluginInfo ( 
 	FFGLBridge::CreateInstance,	// Create method
-	"GLBR",								// Plugin unique ID											
-	"FFGLBridge",					// Plugin name											
+	"DXBR",								// Plugin unique ID											
+	"DX SharedTexture",					// Plugin name											
 	1,						   			// API major version number 													
 	000,								  // API minor version number	
 	1,										// Plugin major version number
 	000,									// Plugin minor version number
-	FF_EFFECT,						// Plugin type
+	FF_SOURCE,						// Plugin type
 	"DirectX-Freeframe Texture Bridge",	// Plugin description
 	"by Elio / www.r-revue.de" // About
 );
@@ -37,17 +36,15 @@ IDirect3DDevice9Ex * pDevice = NULL;
 FFGLBridge::FFGLBridge()
 :CFreeFrameGLPlugin(),
  m_initResources(1),
- m_inputTextureLocation(-1),
- m_maxCoordsLocation(-1),
- m_BridgeAmountLocation(-1)
+ m_maxCoordsLocation(-1)
 {
 	// Input properties
 	SetMinInputs(1);
 	SetMaxInputs(1);
 
 	// Parameters
-	SetParamInfo(FFPARAM_Bridge, "Bridge", FF_TYPE_STANDARD, 0.5f);
-	m_Bridge = 0.5f;
+	SetParamInfo(FFPARAM_Bridge, "SharedMemName", FF_TYPE_TEXT, "myApplication/myTexture");
+	strcpy( m_SharedMemoryName, "myApplication/myTexture" );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -63,10 +60,16 @@ DWORD FFGLBridge::InitGL(const FFGLViewportStruct *vp)
 	// dynamically load NVIDIA Interop Extensions
   getNvExt(NULL);
 
-  initD3D(&pD3D, &pDevice, &m_InteropHandle, NULL,600,400);
-  load_texture(pDevice, m_InteropHandle, &m_TextureFromDX9Handle, &m_TextureFromDX9Name);
+  initD3D(&pD3D, &pDevice, &m_InteropHandle, &m_TextureFromDX9Name, NULL, 600, 400);
+  load_texture(pDevice, m_InteropHandle, &m_TextureFromDX9Handle, m_TextureFromDX9Name);
 
   return FF_SUCCESS;
+}
+
+DWORD FFGLBridge::UpdateTexture() {
+	load_texture(pDevice, m_InteropHandle, &m_TextureFromDX9Handle, m_TextureFromDX9Name);
+
+	return FF_SUCCESS;
 }
 
 DWORD FFGLBridge::DeInitGL()
@@ -141,7 +144,7 @@ DWORD FFGLBridge::GetParameter(DWORD dwIndex)
 	switch (dwIndex) {
 
 	case FFPARAM_Bridge:
-    *((float *)(unsigned)&dwRet) = m_Bridge;
+	    dwRet = (DWORD) m_SharedMemoryName;
 		return dwRet;
 	default:
 		return FF_FAIL;
@@ -155,7 +158,7 @@ DWORD FFGLBridge::SetParameter(const SetParameterStruct* pParam)
 		switch (pParam->ParameterNumber) {
 
 		case FFPARAM_Bridge:
-			m_Bridge = *((float *)(unsigned)&(pParam->NewParameterValue));
+			strcpy( m_SharedMemoryName, (char*) pParam->NewParameterValue);
 			break;
 
 		default:

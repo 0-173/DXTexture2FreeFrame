@@ -35,9 +35,16 @@ extern PFNWGLDXLOCKOBJECTSNVPROC wglDXLockObjectsNV;
 typedef BOOL (WINAPI * PFNWGLDXUNLOCKOBJECTSNVPROC) (HANDLE hDevice, GLint count, HANDLE *hObjects);
 extern PFNWGLDXUNLOCKOBJECTSNVPROC wglDXUnlockObjectsNV;
 
-void initD3D(IDirect3D9Ex** ppD3D, IDirect3DDevice9Ex** ppDevice, HANDLE* pInteropHandle, HWND hWnd, int width, int height);    // sets up and initializes Direct3D
+struct DX9SharedTextureInfo {
+	UINT16 width;
+	UINT16 height;
+	HANDLE shareHandle;
+};
+
+void initD3D(IDirect3D9Ex** ppD3D, IDirect3DDevice9Ex** ppDevice, HANDLE* pInteropHandle, GLuint* pTextureName, HWND hWnd, int width, int height);    // sets up and initializes Direct3D
 void cleanD3D(IDirect3D9Ex* pD3D, IDirect3DDevice9Ex* pDevice, HANDLE* pInteropHandle);
-BOOL load_texture(IDirect3DDevice9Ex* pDevice, HANDLE interopHandle, HANDLE* pTextureHandle, GLuint* pTextureName);
+BOOL getSharedTextureInfo(DX9SharedTextureInfo* info);
+BOOL load_texture(IDirect3DDevice9Ex* pDevice, HANDLE interopHandle, HANDLE* pTextureHandle, GLuint TextureName);
 BOOL getNvExt( HWND hWnd );
 
 #endif

@@ -1,4 +1,5 @@
 #include "dxconnector.h"
+#include <string>
 
 PFNWGLDXOPENDEVICENVPROC wglDXOpenDeviceNV = NULL;
 PFNWGLDXREGISTEROBJECTNVPROC wglDXRegisterObjectNV = NULL;
@@ -9,7 +10,7 @@ PFNWGLDXCLOSEDEVICENVPROC wglDXCloseDeviceNV = NULL;
 PFNWGLDXUNREGISTEROBJECTNVPROC wglDXUnregisterObjectNV = NULL;
 
 // this function initializes and prepares Direct3D for use
-void initD3D(IDirect3D9Ex** ppD3D, IDirect3DDevice9Ex** ppDevice, HANDLE* pInteropHandle, HWND hWnd, int width, int height)
+void initD3D(IDirect3D9Ex** ppD3D, IDirect3DDevice9Ex** ppDevice, HANDLE* pInteropHandle, GLuint* pTextureName, HWND hWnd, int width, int height)
 {
     Direct3DCreate9Ex(D3D_SDK_VERSION, ppD3D);
 
@@ -36,6 +37,8 @@ void initD3D(IDirect3D9Ex** ppD3D, IDirect3DDevice9Ex** ppDevice, HANDLE* pInter
                       ppDevice);
 	// register the Direct3D device with GL
 	*pInteropHandle = wglDXOpenDeviceNV(*ppDevice);
+		// prepare gl texture
+	glGenTextures(1, pTextureName);
 }
 
 // this is the function that cleans up Direct3D and COM
@@ -48,12 +51,16 @@ void cleanD3D(IDirect3D9Ex* pD3D, IDirect3DDevice9Ex* pDevice, HANDLE* pInteropH
 }
 
 
-BOOL load_texture(IDirect3DDevice9Ex* pDevice, HANDLE interopHandle, HANDLE* pTextureHandle, GLuint* pTextureName) {
-	HANDLE textureShareHandle = (HANDLE) 3221232642;
+BOOL load_texture(IDirect3DDevice9Ex* pDevice, HANDLE interopHandle, HANDLE* pTextureHandle, GLuint TextureName) {
 	LPDIRECT3DTEXTURE9 texture;
-	HRESULT res = pDevice->CreateTexture(256,256,1,D3DUSAGE_RENDERTARGET, D3DFMT_X8R8G8B8, D3DPOOL_DEFAULT, &texture, &textureShareHandle );
-	// USAGE may also be D3DUSAGE_DYNAMIC and pay attention to format and resolution!!!
-//	HRESULT res2 = d3ddev->CreateRenderTarget(1920,1080,D3DFMT_X8R8G8B8,D3DMULTISAMPLE_NONE,0,false, &textureShareHandle );
+	DX9SharedTextureInfo textureInfo;
+	getSharedTextureInfo(&textureInfo);
+	HANDLE textureShareHandle = (HANDLE) textureInfo.shareHandle;
+	HRESULT res = pDevice->CreateTexture(textureInfo.width,textureInfo.height,1,D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &texture, &textureShareHandle );
+		// USAGE may also be D3DUSAGE_DYNAMIC and pay attention to format and resolution!!!
+	if ( res != D3D_OK ) {
+		return FALSE;
+	}
 
 
 	HRESULT ok = D3D_OK;
@@ -65,11 +72,9 @@ BOOL load_texture(IDirect3DDevice9Ex* pDevice, HANDLE interopHandle, HANDLE* pTe
 		return FALSE;
 	}
 
-		// prepare gl texture
-	glGenTextures(1, pTextureName);
 		// register for interop and associate with dx texture
 	*pTextureHandle = wglDXRegisterObjectNV(interopHandle, texture,
-		*pTextureName,
+		TextureName,
 		GL_TEXTURE_2D,
 		WGL_ACCESS_READ_ONLY_NV);
 
@@ -123,6 +128,42 @@ BOOL getNvExt( HWND hWnd )
 		MessageBox(hWnd, "wglDXCloseDeviceNV ext is not supported by your GPU.", "Error", 0);
 		return FALSE;
 	}
+
+	return TRUE;
+}
+
+BOOL getSharedTextureInfo(DX9SharedTextureInfo* info) {
+	TCHAR szName[]=TEXT("vvvvToResolume/MainRenderer");
+	HANDLE hMapFile;
+	LPCTSTR pBuf;
+
+	hMapFile = OpenFileMapping(
+					FILE_MAP_READ,   // read/write access
+					FALSE,                 // do not inherit the name
+					szName);               // name of mapping object
+
+	if (hMapFile == NULL) {
+		// no texture to share
+		return FALSE;
+	}
+
+	pBuf = (LPTSTR) MapViewOfFile(hMapFile, // handle to map object
+				FILE_MAP_READ,  // read/write permission
+				0,
+				0,
+				sizeof(DX9SharedTextureInfo) );
+
+	if (pBuf == NULL)
+	{
+		MessageBox(NULL, "Could not map view of file.", "Error", 0), 
+		CloseHandle(hMapFile);
+		return FALSE;
+	}
+
+	memcpy( info, pBuf, sizeof(DX9SharedTextureInfo) );
+	
+	UnmapViewOfFile(pBuf);
+	CloseHandle(hMapFile);
 
 	return TRUE;
 }
