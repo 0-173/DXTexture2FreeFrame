@@ -1,3 +1,10 @@
+Source/PluginBase/
+Source/Common/
+Include/
+Project/Debug/
+
+*.opensdf
+
 # Compiled Object files
 *.slo
 *.lo
