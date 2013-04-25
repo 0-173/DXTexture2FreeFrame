@@ -41,10 +41,44 @@ struct DX9SharedTextureInfo {
 	HANDLE shareHandle;
 };
 
-void initD3D(IDirect3D9Ex** ppD3D, IDirect3DDevice9Ex** ppDevice, HANDLE* pInteropHandle, GLuint* pTextureName, HWND hWnd, int width, int height);    // sets up and initializes Direct3D
-void cleanD3D(IDirect3D9Ex* pD3D, IDirect3DDevice9Ex* pDevice, HANDLE* pInteropHandle);
-BOOL getSharedTextureInfo(DX9SharedTextureInfo* info);
-BOOL load_texture(IDirect3DDevice9Ex* pDevice, HANDLE interopHandle, HANDLE* pTextureHandle, GLuint TextureName);
-BOOL getNvExt( HWND hWnd );
+class DXGLConnector {
+
+	public:
+
+		// parent window
+		HWND m_hWnd;
+		// texture info struct from sending application
+		DX9SharedTextureInfo m_TextureInfo;
+
+		// DIRECTX Connections
+		IDirect3D9Ex * m_pD3D;
+		IDirect3DDevice9Ex * m_pDevice;
+		LPDIRECT3DTEXTURE9 m_dxTexture;
+
+		// GL Connections
+		GLuint m_glTextureName;
+		HANDLE m_glTextureHandle;
+
+		// the DX/GL interop device's handle
+		HANDLE m_InteropHandle;
+
+		DXGLConnector();
+		~DXGLConnector();
+
+		    // sets up and initializes Direct3D
+		void init(HWND hWnd, int width, int height);
+			// deinit Direct3D
+		void cleanup();
+
+		BOOL connectToTexture();
+		BOOL Reload();
+		void setSharedMemoryName(char* sharedMemoryName);
+	protected:
+		BOOL m_bInitialized;
+		char m_shardMemoryName[256];
+
+		BOOL getSharedTextureInfo(char* sharedMemoryName);
+		BOOL getNvExt();
+};
 
 #endif

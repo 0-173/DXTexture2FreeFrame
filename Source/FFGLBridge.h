@@ -2,7 +2,7 @@
 #define FFGLBridge_H
 
 #include <FFGLShader.h>
-#include "../FFGLPluginSDK.h"
+#include "PluginBase/FFGLPluginSDK.h"
 
 class FFGLBridge :
 public CFreeFrameGLPlugin
@@ -41,10 +41,7 @@ protected:
 	
 	int m_initResources;
 
-	GLuint m_TextureFromDX9Name;
-	HANDLE m_TextureFromDX9Handle;
-		// the DX/GL interop device's handle
-	HANDLE m_InteropHandle;
+	DXGLConnector m_dxConnector;
 
 	FFGLExtensions m_extensions;
 	GLint m_maxCoordsLocation;

@@ -3,7 +3,8 @@
 #include "dxConnector.h"
 #include "FFGLBridge.h"
 
-#define FFPARAM_Bridge  (0)
+#define FFPARAM_SharingName		(0)
+#define FFPARAM_Reload			(1)
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Plugin information
@@ -12,7 +13,7 @@
 static CFFGLPluginInfo PluginInfo ( 
 	FFGLBridge::CreateInstance,	// Create method
 	"DXBR",								// Plugin unique ID											
-	"DX SharedTexture",					// Plugin name											
+	"DX Texture (RR)",					// Plugin name											
 	1,						   			// API major version number 													
 	000,								  // API minor version number	
 	1,										// Plugin major version number
@@ -21,12 +22,6 @@ static CFFGLPluginInfo PluginInfo (
 	"DirectX-Freeframe Texture Bridge",	// Plugin description
 	"by Elio / www.r-revue.de" // About
 );
-
-
-// DIRECTX Declarations
-IDirect3D9Ex * pD3D = NULL;
-IDirect3DDevice9Ex * pDevice = NULL;
-
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -43,8 +38,9 @@ FFGLBridge::FFGLBridge()
 	SetMaxInputs(1);
 
 	// Parameters
-	SetParamInfo(FFPARAM_Bridge, "SharedMemName", FF_TYPE_TEXT, "myApplication/myTexture");
-	strcpy( m_SharedMemoryName, "myApplication/myTexture" );
+	SetParamInfo(FFPARAM_SharingName, "Sharing Name", FF_TYPE_TEXT, "myApplication/mySource");
+	strcpy( m_SharedMemoryName, "myApplication/mySource" );
+	SetParamInfo(FFPARAM_Reload, "Update", FF_TYPE_EVENT, false );
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -56,32 +52,17 @@ DWORD FFGLBridge::InitGL(const FFGLViewportStruct *vp)
   //initialize gl extensions and
   //make sure required features are supported
   m_extensions.Initialize();
-    
-	// dynamically load NVIDIA Interop Extensions
-  getNvExt(NULL);
-
-  initD3D(&pD3D, &pDevice, &m_InteropHandle, &m_TextureFromDX9Name, NULL, 600, 400);
-  load_texture(pDevice, m_InteropHandle, &m_TextureFromDX9Handle, m_TextureFromDX9Name);
+  
+  m_dxConnector.init(NULL, 600, 400);
 
   return FF_SUCCESS;
-}
-
-DWORD FFGLBridge::UpdateTexture() {
-	load_texture(pDevice, m_InteropHandle, &m_TextureFromDX9Handle, m_TextureFromDX9Name);
-
-	return FF_SUCCESS;
 }
 
 DWORD FFGLBridge::DeInitGL()
 {
 	/* this causes death. either it must be used another way or there's no need to unregister
 	wglDXUnregisterObjectNV(pDevice, m_TextureFromDX9Handle);*/
-	cleanD3D(pD3D, pDevice, &m_InteropHandle);
-
-	if (m_TextureFromDX9Name) {
-		glDeleteTextures(1, &m_TextureFromDX9Name);
-		m_TextureFromDX9Name = 0;
-	}
+	m_dxConnector.cleanup();
 
 	return FF_SUCCESS;
 }
@@ -95,8 +76,8 @@ DWORD FFGLBridge::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 	FFGLTextureStruct &Texture = *(pGL->inputTextures[0]);
 
 	// lock and bind dx texture
-	BOOL ret = wglDXLockObjectsNV(m_InteropHandle, 1, &m_TextureFromDX9Handle);
-	glBindTexture(GL_TEXTURE_2D, m_TextureFromDX9Name);
+	BOOL ret = wglDXLockObjectsNV(m_dxConnector.m_InteropHandle, 1, &m_dxConnector.m_glTextureHandle);
+	glBindTexture(GL_TEXTURE_2D, m_dxConnector.m_glTextureName);
 	//enable texturemapping
 	glEnable(GL_TEXTURE_2D);
 
@@ -129,7 +110,7 @@ DWORD FFGLBridge::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 	// unbind the drawn texture
 	glBindTexture(GL_TEXTURE_2D, 0);
 	// unlock dx object
-	ret = wglDXUnlockObjectsNV(m_InteropHandle, 1, &m_TextureFromDX9Handle);
+	ret = wglDXUnlockObjectsNV(m_dxConnector.m_InteropHandle, 1, &m_dxConnector.m_glTextureHandle);
   
 	//disable texturemapping
 	glDisable(GL_TEXTURE_2D);
@@ -143,7 +124,7 @@ DWORD FFGLBridge::GetParameter(DWORD dwIndex)
 
 	switch (dwIndex) {
 
-	case FFPARAM_Bridge:
+	case FFPARAM_SharingName:
 	    dwRet = (DWORD) m_SharedMemoryName;
 		return dwRet;
 	default:
@@ -157,8 +138,14 @@ DWORD FFGLBridge::SetParameter(const SetParameterStruct* pParam)
 		
 		switch (pParam->ParameterNumber) {
 
-		case FFPARAM_Bridge:
+		case FFPARAM_SharingName:
 			strcpy( m_SharedMemoryName, (char*) pParam->NewParameterValue);
+			m_dxConnector.setSharedMemoryName(m_SharedMemoryName);
+			break;
+		case FFPARAM_Reload:
+			if ( pParam->NewParameterValue ) {
+				m_dxConnector.Reload();
+			}
 			break;
 
 		default:
