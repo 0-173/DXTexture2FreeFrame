@@ -49,13 +49,17 @@ FFGLBridge::FFGLBridge()
 
 DWORD FFGLBridge::InitGL(const FFGLViewportStruct *vp)
 {
-  //initialize gl extensions and
-  //make sure required features are supported
-  m_extensions.Initialize();
-  
-  m_dxConnector.init(NULL, 600, 400);
+	HWND hWnd = GetForegroundWindow(); // we don't have the Window Handle until now :(
 
-  return FF_SUCCESS;
+	//initialize gl extensions and
+	//make sure required features are supported
+	m_extensions.Initialize();
+  
+	m_dxConnector.init(hWnd);
+		// DirectX device initialization needs the window to be redrawn (creates black areas)
+	SendMessage( hWnd, WM_PAINT, NULL, NULL );
+
+	return FF_SUCCESS;
 }
 
 DWORD FFGLBridge::DeInitGL()

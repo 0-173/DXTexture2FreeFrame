@@ -26,7 +26,7 @@ DXGLConnector::~DXGLConnector() {
 }
 
 // this function initializes and prepares Direct3D
-void DXGLConnector::init(HWND hWnd, int width, int height)
+void DXGLConnector::init(HWND hWnd)
 {
     Direct3DCreate9Ex(D3D_SDK_VERSION, &m_pD3D);
 
@@ -38,8 +38,9 @@ void DXGLConnector::init(HWND hWnd, int width, int height)
     d3dpp.hDeviceWindow = hWnd;
 		// this seems to be quite a dummy thing because we use directx only for accessing the handle
     d3dpp.BackBufferFormat = D3DFMT_X8R8G8B8;
-    d3dpp.BackBufferWidth = width;
-    d3dpp.BackBufferHeight = height;
+		// some dummy resolution - we don't render anything
+    d3dpp.BackBufferWidth = 10;
+    d3dpp.BackBufferHeight = 10;
 	
 	// attention: changed this from device9ex to device9 (perhaps it needs to be changed back, but i want to have same code as in dx_interop sample code)
 
@@ -51,7 +52,7 @@ void DXGLConnector::init(HWND hWnd, int width, int height)
                       &d3dpp,
 					  NULL,
                       &m_pDevice);
-	// register the Direct3D device with GL
+		
 	m_InteropHandle = wglDXOpenDeviceNV(m_pDevice);
 		// prepare gl texture
 	glGenTextures(1, &m_glTextureName);
