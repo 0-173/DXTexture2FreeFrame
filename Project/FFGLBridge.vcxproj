@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectName>FFGLBridge</ProjectName>
+    <ProjectName>RR_DXTexture</ProjectName>
     <ProjectGuid>{7E8C43C2-7240-41E0-AC4A-BAB7399E9FAD}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
   </PropertyGroup>
@@ -45,7 +45,7 @@
     <OutDir>Debug\</OutDir>
     <IntDir>Debug\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath);D:\Dokumente\Projekte\Entwicklung\Video\DX-OpenGL-Texture\Freeframe-Plugin\RR-DXBridge\Include\</IncludePath>
+    <IncludePath>$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>Release\</OutDir>
@@ -55,7 +55,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\..\..\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;FFGLHEAT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -66,7 +66,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>C:\Program Files (x86)\Resolume Arena 4.1.4\plugins\vfx\FFGLBridge_debug.dll</OutputFile>
+      <OutputFile>../Binaries/RR_DXTexture_debug.dll</OutputFile>
       <ModuleDefinitionFile>FFGLPlugins.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)FFGLHeat.pdb</ProgramDatabaseFile>
@@ -77,7 +77,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\..\..\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;FFGLHEAT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader />
@@ -86,7 +86,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>../../../Binaries/Win32/FFGLBridge.dll</OutputFile>
+      <OutputFile>../Binaries/RR_DXTexture.dll</OutputFile>
       <ModuleDefinitionFile>FFGLPlugins.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -99,12 +99,12 @@
   <ItemGroup>
     <ClCompile Include="..\Source\Common\FFGLExtensions.cpp" />
     <ClCompile Include="..\Source\dxConnector.cpp" />
-    <ClCompile Include="..\Source\FFGLBridge.cpp" />
     <ClCompile Include="..\Source\PluginBase\FFGL.cpp" />
     <ClCompile Include="..\Source\PluginBase\FFGLPluginInfo.cpp" />
     <ClCompile Include="..\Source\PluginBase\FFGLPluginInfoData.cpp" />
     <ClCompile Include="..\Source\PluginBase\FFGLPluginManager.cpp" />
     <ClCompile Include="..\Source\PluginBase\FFGLPluginSDK.cpp" />
+    <ClCompile Include="..\Source\RR-DXGLBridge.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -18,9 +18,6 @@
     <ClCompile Include="..\Source\dxConnector.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\Source\FFGLBridge.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\Source\Common\FFGLExtensions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -37,6 +34,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\Source\PluginBase\FFGLPluginSDK.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\Source\RR-DXGLBridge.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

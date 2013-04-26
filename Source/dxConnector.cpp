@@ -109,6 +109,10 @@ BOOL DXGLConnector::connectToTexture() {
 	}
 
 	HANDLE textureShareHandle = (HANDLE) m_TextureInfo.shareHandle;
+	if ( textureShareHandle == NULL ) {
+		return FALSE;
+	}
+
 	HRESULT res = m_pDevice->CreateTexture(m_TextureInfo.width,m_TextureInfo.height,1,D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_dxTexture, &textureShareHandle );
 		// USAGE may also be D3DUSAGE_DYNAMIC and pay attention to format and resolution!!!
 	if ( res != D3D_OK ) {
