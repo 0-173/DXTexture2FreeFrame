@@ -61,9 +61,14 @@ DXGLConnector::~DXGLConnector() {
 }
 
 // this function initializes and prepares Direct3D
-void DXGLConnector::init(HWND hWnd)
+BOOL DXGLConnector::init(HWND hWnd)
 {
-    Direct3DCreate9Ex(D3D_SDK_VERSION, &m_pD3D);
+	HRESULT res;
+    res = Direct3DCreate9Ex(D3D_SDK_VERSION, &m_pD3D);
+	if ( res != D3D_OK ) {
+		MessageBox(m_hWnd, "Failed to initialize DX9EX", "Error", 0);
+		return FALSE;
+	}
 
     D3DPRESENT_PARAMETERS d3dpp;
 
@@ -80,21 +85,31 @@ void DXGLConnector::init(HWND hWnd)
 	// attention: changed this from device9ex to device9 (perhaps it needs to be changed back, but i want to have same code as in dx_interop sample code)
 
     // create a device class using this information and the info from the d3dpp stuct
-    m_pD3D->CreateDeviceEx(D3DADAPTER_DEFAULT,
+    res = m_pD3D->CreateDeviceEx(D3DADAPTER_DEFAULT,
                       D3DDEVTYPE_HAL,
-                      hWnd,
+                      m_hWnd,
                       D3DCREATE_HARDWARE_VERTEXPROCESSING | D3DCREATE_PUREDEVICE | D3DCREATE_MULTITHREADED,
                       &d3dpp,
 					  NULL,
                       &m_pDevice);
+	if ( res != D3D_OK ) {
+		MessageBox(m_hWnd, "Failed to create DX9EX Device", "Error", 0);
+		return FALSE;
+	}
 		
 	m_InteropHandle = wglDXOpenDeviceNV(m_pDevice);
+	if ( m_InteropHandle == NULL ) {
+		MessageBox(m_hWnd, "NVidia wglDXInterop failed to initialize.", "Error", 0);
+		return FALSE;
+	}
 		// prepare gl texture
 	glGenTextures(1, &m_glTextureName);
 
 		// directly connect to texture if possible
 	connectToTexture();
 	m_bInitialized = TRUE;
+
+	return TRUE;
 }
 
 // this is the function that cleans up Direct3D and COM
@@ -109,10 +124,17 @@ void DXGLConnector::cleanup()
 		m_glTextureHandle = NULL;
 	}
 
-	wglDXCloseDeviceNV(m_InteropHandle);
+	if ( m_InteropHandle != NULL ) {
+		wglDXCloseDeviceNV(m_InteropHandle);
+	}
 
-    m_pDevice->Release();    // close and release the 3D device
-    m_pD3D->Release();    // close and release Direct3D
+    if ( m_pDevice != NULL ) {
+		m_pDevice->Release();    // close and release the 3D device
+	}
+	if ( m_pD3D != NULL ) {
+	    m_pD3D->Release();    // close and release Direct3D
+	}
+
 	m_bInitialized = FALSE;
 }
 
@@ -157,7 +179,7 @@ BOOL DXGLConnector::connectToTexture() {
 		// prepare shared resource
 	if (!wglDXSetResourceShareHandleNV(m_dxTexture, textureShareHandle) ) {
 			// this is not only a non-accessible share-handle, something worse
-		MessageBox(NULL, "wglDXSetResourceShareHandleNV() failed.", "Error", 0);
+		MessageBox(m_hWnd, "wglDXSetResourceShareHandleNV() failed.", "Error", 0);
 		return FALSE;
 	}
 

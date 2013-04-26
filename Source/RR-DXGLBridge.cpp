@@ -90,7 +90,9 @@ DWORD RRDXGLBridge::InitGL(const FFGLViewportStruct *vp)
 	//make sure required features are supported
 	m_extensions.Initialize();
   
-	m_dxConnector.init(hWnd);
+	if ( !m_dxConnector.init(hWnd) ) {
+		return FF_FAIL;
+	}
 		// DirectX device initialization needs the window to be redrawn (creates black areas)
 	SendMessage( hWnd, WM_PAINT, NULL, NULL );
 

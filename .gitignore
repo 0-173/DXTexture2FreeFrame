@@ -2,8 +2,10 @@ Source/PluginBase/
 Source/Common/
 Include/
 Project/Debug/
+Project/Release/
 
 *.opensdf
+FFGLBridge.vcxproj.user
 
 # Compiled Object files
 *.slo

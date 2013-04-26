@@ -101,7 +101,7 @@ class DXGLConnector {
 		~DXGLConnector();
 
 		    // sets up and initializes Direct3D
-		void init(HWND hWnd);
+		BOOL init(HWND hWnd);
 			// deinit Direct3D
 		void cleanup();
 
