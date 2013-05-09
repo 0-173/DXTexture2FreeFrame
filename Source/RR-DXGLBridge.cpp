@@ -74,7 +74,7 @@ RRDXGLBridge::RRDXGLBridge()
 
 	// Parameters
 	SetParamInfo(FFPARAM_SharingName, "Sharing Name", FF_TYPE_TEXT, "myApplication/mySource");
-	strcpy( m_SharedMemoryName, "myApplication/mySource" );
+	strcpy_s( m_SharedMemoryName, "myApplication/mySource" );
 	SetParamInfo(FFPARAM_Reload, "Update", FF_TYPE_EVENT, false );
 }
 
@@ -180,7 +180,7 @@ DWORD RRDXGLBridge::SetParameter(const SetParameterStruct* pParam)
 		switch (pParam->ParameterNumber) {
 
 		case FFPARAM_SharingName:
-			strcpy( m_SharedMemoryName, (char*) pParam->NewParameterValue);
+			strcpy_s( m_SharedMemoryName, (char*) pParam->NewParameterValue);
 			m_dxConnector.setSharedMemoryName(m_SharedMemoryName);
 			break;
 		case FFPARAM_Reload:

@@ -5,7 +5,7 @@ Project/Debug/
 Project/Release/
 
 *.opensdf
-FFGLBridge.vcxproj.user
+*.vcxproj.user
 
 # Compiled Object files
 *.slo

@@ -45,14 +45,14 @@ PFNWGLDXCLOSEDEVICENVPROC wglDXCloseDeviceNV = NULL;
 PFNWGLDXUNREGISTEROBJECTNVPROC wglDXUnregisterObjectNV = NULL;
 
 DXGLConnector::DXGLConnector() {
-	IDirect3D9Ex * m_pD3D = NULL;
-	IDirect3DDevice9Ex * m_pDevice = NULL;
-	LPDIRECT3DTEXTURE9 m_dxTexture = NULL;
+	m_pD3D = NULL;
+	m_pDevice = NULL;
+	m_dxTexture = NULL;
 	m_glTextureHandle = NULL;
 	m_glTextureName = 0;
 	m_hWnd = NULL;
 	m_bInitialized = FALSE;
-	strcpy( m_shardMemoryName, "" );
+	strcpy_s( m_shardMemoryName, "" );
 	getNvExt();
 }
 
@@ -61,7 +61,7 @@ DXGLConnector::~DXGLConnector() {
 }
 
 // this function initializes and prepares Direct3D
-BOOL DXGLConnector::init(HWND hWnd)
+BOOL DXGLConnector::init(HWND hWnd, BOOL bReceive)
 {
 	HRESULT res;
     res = Direct3DCreate9Ex(D3D_SDK_VERSION, &m_pD3D);
@@ -79,8 +79,8 @@ BOOL DXGLConnector::init(HWND hWnd)
 		// this seems to be quite a dummy thing because we use directx only for accessing the handle
     d3dpp.BackBufferFormat = D3DFMT_X8R8G8B8;
 		// some dummy resolution - we don't render anything
-    d3dpp.BackBufferWidth = 10;
-    d3dpp.BackBufferHeight = 10;
+    d3dpp.BackBufferWidth = 1920;
+    d3dpp.BackBufferHeight = 1080;
 	
 	// attention: changed this from device9ex to device9 (perhaps it needs to be changed back, but i want to have same code as in dx_interop sample code)
 
@@ -106,7 +106,7 @@ BOOL DXGLConnector::init(HWND hWnd)
 	glGenTextures(1, &m_glTextureName);
 
 		// directly connect to texture if possible
-	connectToTexture();
+	connectToTexture(bReceive);
 	m_bInitialized = TRUE;
 
 	return TRUE;
@@ -142,7 +142,7 @@ void DXGLConnector::setSharedMemoryName(char* sharedMemoryName) {
 	if ( strcmp(sharedMemoryName, m_shardMemoryName) == 0 ) {
 		return;
 	}
-	strcpy( m_shardMemoryName, sharedMemoryName );
+	strcpy_s( m_shardMemoryName, sharedMemoryName );
 	if ( m_bInitialized ) { // directly connect to texture (if already initialized)
 		connectToTexture();
 	}
@@ -155,29 +155,39 @@ BOOL DXGLConnector::Reload() {
 	return FALSE;
 }
 
-BOOL DXGLConnector::connectToTexture() {
+/**
+ * connectToTexture()
+ * 
+ * bReceive		when receiving a texture from a DX application this must be set to TRUE (default)
+ *				when sending a texture from GL to the DX application, set to FALSE
+ */
+BOOL DXGLConnector::connectToTexture( BOOL bReceive ) {
 	if ( m_glTextureHandle != NULL ) { // already a texture connected => unregister interop
 		wglDXUnregisterObjectNV(m_InteropHandle, m_glTextureHandle);
 		m_glTextureHandle = NULL;
 	}
 
-	if ( !getSharedTextureInfo(m_shardMemoryName) ) {  // error accessing shared memory texture info
+	if ( bReceive && !getSharedTextureInfo(m_shardMemoryName) ) {  // error accessing shared memory texture info
 		return FALSE;
 	}
 
-	HANDLE textureShareHandle = (HANDLE) m_TextureInfo.shareHandle;
-	if ( textureShareHandle == NULL ) {
-		return FALSE;
+	if ( bReceive ) {
+		if ( m_TextureInfo.shareHandle == NULL ) {
+			return FALSE;
+		}
+	} else {
+			// create a new shared resource
+		m_TextureInfo.shareHandle = NULL;
 	}
-
-	HRESULT res = m_pDevice->CreateTexture(m_TextureInfo.width,m_TextureInfo.height,1,D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_dxTexture, &textureShareHandle );
+	LPDIRECT3DTEXTURE9* ppTexture = bReceive ? &m_dxTexture : NULL;
+	HRESULT res = m_pDevice->CreateTexture(m_TextureInfo.width,m_TextureInfo.height,1,D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, D3DPOOL_DEFAULT, &m_dxTexture, &m_TextureInfo.shareHandle );
 		// USAGE may also be D3DUSAGE_DYNAMIC and pay attention to format and resolution!!!
 	if ( res != D3D_OK ) {
 		return FALSE;
 	}
 
 		// prepare shared resource
-	if (!wglDXSetResourceShareHandleNV(m_dxTexture, textureShareHandle) ) {
+	if (!wglDXSetResourceShareHandleNV(m_dxTexture, m_TextureInfo.shareHandle) ) {
 			// this is not only a non-accessible share-handle, something worse
 		MessageBox(m_hWnd, "wglDXSetResourceShareHandleNV() failed.", "Error", 0);
 		return FALSE;
@@ -187,7 +197,7 @@ BOOL DXGLConnector::connectToTexture() {
 	m_glTextureHandle = wglDXRegisterObjectNV(m_InteropHandle, m_dxTexture,
 		m_glTextureName,
 		GL_TEXTURE_2D,
-		WGL_ACCESS_READ_ONLY_NV);
+		WGL_ACCESS_READ_WRITE_NV);
 
 	return TRUE;
 }

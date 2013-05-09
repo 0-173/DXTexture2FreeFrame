@@ -101,11 +101,11 @@ class DXGLConnector {
 		~DXGLConnector();
 
 		    // sets up and initializes Direct3D
-		BOOL init(HWND hWnd);
+		BOOL init(HWND hWnd, BOOL bReceive = TRUE);
 			// deinit Direct3D
 		void cleanup();
 
-		BOOL connectToTexture();
+		BOOL connectToTexture(BOOL bReceive = TRUE);
 		BOOL Reload();
 		void setSharedMemoryName(char* sharedMemoryName);
 	protected:

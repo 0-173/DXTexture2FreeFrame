@@ -80,6 +80,9 @@ protected:
 
 	FFGLExtensions m_extensions;
 	GLint m_maxCoordsLocation;
+
+		// the framebuffer (for copying textures)
+	GLuint m_fbo;
 };
 
 
