@@ -5,6 +5,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RR_DXTexture", "FFGLBridge.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RR_GL2DX", "FFGLBridgeBack.vcxproj", "{7CD4B14D-3907-43A5-9C41-18AA1A13C223}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RR_ImportWyphon", "RR_ImportWyphon.vcxproj", "{7E48AD8E-F099-4D6E-BE16-8F7A780CA815}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "RR_ExportWyphon", "RR_ExportWyphon.vcxproj", "{CE3F9CAD-78E9-43C2-AE20-F9059FCC1F1D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -21,6 +25,18 @@ Global
 		{7CD4B14D-3907-43A5-9C41-18AA1A13C223}.Release|Win32.ActiveCfg = Release|Win32
 		{7CD4B14D-3907-43A5-9C41-18AA1A13C223}.Release|Win32.Build.0 = Release|Win32
 		{7CD4B14D-3907-43A5-9C41-18AA1A13C223}.Release|Win32.Deploy.0 = Release|Win32
+		{7E48AD8E-F099-4D6E-BE16-8F7A780CA815}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7E48AD8E-F099-4D6E-BE16-8F7A780CA815}.Debug|Win32.Build.0 = Debug|Win32
+		{7E48AD8E-F099-4D6E-BE16-8F7A780CA815}.Debug|Win32.Deploy.0 = Debug|Win32
+		{7E48AD8E-F099-4D6E-BE16-8F7A780CA815}.Release|Win32.ActiveCfg = Release|Win32
+		{7E48AD8E-F099-4D6E-BE16-8F7A780CA815}.Release|Win32.Build.0 = Release|Win32
+		{7E48AD8E-F099-4D6E-BE16-8F7A780CA815}.Release|Win32.Deploy.0 = Release|Win32
+		{CE3F9CAD-78E9-43C2-AE20-F9059FCC1F1D}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CE3F9CAD-78E9-43C2-AE20-F9059FCC1F1D}.Debug|Win32.Build.0 = Debug|Win32
+		{CE3F9CAD-78E9-43C2-AE20-F9059FCC1F1D}.Debug|Win32.Deploy.0 = Debug|Win32
+		{CE3F9CAD-78E9-43C2-AE20-F9059FCC1F1D}.Release|Win32.ActiveCfg = Release|Win32
+		{CE3F9CAD-78E9-43C2-AE20-F9059FCC1F1D}.Release|Win32.Build.0 = Release|Win32
+		{CE3F9CAD-78E9-43C2-AE20-F9059FCC1F1D}.Release|Win32.Deploy.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
