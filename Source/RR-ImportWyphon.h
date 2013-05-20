@@ -59,10 +59,11 @@ public:
 	DWORD	InitGL(const FFGLViewportStruct *vp);
 	DWORD	DeInitGL();
 
-	DWORD	UpdateTexture();
+	DWORD	CheckForTextureUpdate();
+	BOOL	RRImportWyphon::RetrieveTextureInfo();
 	DWORD	NotifySharingStarted(HANDLE wyphonPartnerHandle, Wyphon::WyphonD3DTextureInfo WyphonTextureInfo);
 	DWORD	NotifySharingStopped(HANDLE wyphonPartnerHandle, Wyphon::WyphonD3DTextureInfo WyphonTextureInfo);
-	BOOL	MatchWyphonString(LPCTSTR objectStringW, LPCSTR filterStringMB);
+	BOOL	MatchWyphonString(LPCTSTR objectString, LPCTSTR filterString);
 	DWORD	UnsetTextureData();
 	HANDLE	GetTextureData(Wyphon::WyphonD3DTextureInfo &WyphonTextureInfo);
 	
@@ -81,24 +82,32 @@ public:
 
 protected:	
 	// Parameters
-	char m_WyphonApplicationName[WYPHON_MAX_DESCRIPTION_LENGTH+1];
-	char m_WyphonTextureDescription[WYPHON_MAX_DESCRIPTION_LENGTH+1];
-	HANDLE m_hWyphonPartner;
 
-	Wyphon::WyphonD3DTextureInfo m_WyphonTextureInfo;
-	bool m_bTextureNeedsUpdate; // indicates that texture can be connected 
+	/* both string containers are needed because FFGL works with char* and Wyphon works with wchar_t*
+	   we'll keep them equal */
+	char							m_WyphonApplicationName[WYPHON_MAX_DESCRIPTION_LENGTH+1];
+	wchar_t							m_WyphonApplicationNameT[WYPHON_MAX_DESCRIPTION_LENGTH+1];
+	char							m_WyphonTextureDescription[WYPHON_MAX_DESCRIPTION_LENGTH+1];
+	wchar_t							m_WyphonTextureDescriptionT[WYPHON_MAX_DESCRIPTION_LENGTH+1];
+
+	// 
+	HANDLE							m_hWyphonPartner;
+	HANDLE							m_hWyphonDevice;
+
+	Wyphon::WyphonD3DTextureInfo	m_WyphonTextureInfo;
+	BOOL							m_bTextureNeedsUpdate; // indicates that texture can be connected 
 	
-	int m_initResources;
+	int								m_initResources;
 
 	// Wyphon's GL Texture
-	GLuint m_glTextureName;
-	HANDLE m_glTextureHandle;
+	GLuint							m_glTextureName;
+	HANDLE							m_glTextureHandle;
 
-	FFGLExtensions m_extensions;
-	GLint m_maxCoordsLocation;
+	FFGLExtensions					m_extensions;
+	GLint							m_maxCoordsLocation;
 
 		// the framebuffer (for copying textures)
-	GLuint m_fbo;
+	GLuint							m_fbo;
 };
 
 void TextureSharingStartedCALLBACK( HANDLE wyphonPartnerHandle, unsigned __int32 sendingPartnerId, HANDLE sharedTextureHandle, unsigned __int32 width, unsigned __int32 height, DWORD format, DWORD usage, LPTSTR description, void * customData );

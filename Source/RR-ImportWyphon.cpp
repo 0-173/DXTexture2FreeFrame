@@ -78,10 +78,16 @@ RRImportWyphon::RRImportWyphon()
 	SetMaxInputs(3);
 
 	// Parameters
-	SetParamInfo(FFPARAM_WyphonApplicationName, "Application Name", FF_TYPE_TEXT, "myApplication");
-	SetParamInfo(FFPARAM_WyphonTextureDescription, "Sharing Name", FF_TYPE_TEXT, "myTexture");
+
 	strcpy_s( m_WyphonApplicationName, "myApplication" );
 	strcpy_s( m_WyphonTextureDescription, "myTexture" );
+		// also take care of the wchar_t versions
+	mbstowcs( m_WyphonApplicationNameT, m_WyphonApplicationName, WYPHON_MAX_DESCRIPTION_LENGTH+1 );
+	mbstowcs( m_WyphonTextureDescriptionT, m_WyphonTextureDescription, WYPHON_MAX_DESCRIPTION_LENGTH+1 );
+
+	SetParamInfo(FFPARAM_WyphonApplicationName, "Application Name", FF_TYPE_TEXT, m_WyphonApplicationName);
+	SetParamInfo(FFPARAM_WyphonTextureDescription, "Sharing Name", FF_TYPE_TEXT, m_WyphonTextureDescription);
+
 	SetParamInfo(FFPARAM_Reload, "Update", FF_TYPE_EVENT, false );
 
 	m_hWyphonPartner = NULL;
@@ -109,11 +115,8 @@ DWORD RRImportWyphon::InitGL(const FFGLViewportStruct *vp)
 		TextureSharingStoppedCALLBACK
 	);
 	UnsetTextureData();
-
-	if ( WyphonUtils::InitDX9Ex() != S_OK) {
-		return FF_FAIL;
-	}
-	if ( WyphonUtils::InitGLDXInterop() != S_OK ) {
+	m_hWyphonDevice = WyphonUtils::InitDevice();
+	if ( m_hWyphonDevice == NULL) {
 		return FF_FAIL;
 	}
 		// DirectX device initialization needs the window to be redrawn (creates black areas). This helps in some cases
@@ -127,20 +130,22 @@ DWORD RRImportWyphon::DeInitGL()
 	/* this causes death. either it must be used another way or there's no need to unregister
 	wglDXUnregisterObjectNV(pDevice, m_TextureFromDX9Handle);*/
 	
+		// tell everybody that we're off line
+	DestroyWyphonPartner(m_hWyphonPartner);
+
 	if ( m_glTextureHandle ) { // release any active texture
 		WyphonUtils::ReleaseLinkedGLTexture(m_glTextureName, m_glTextureHandle);
 	}
-	WyphonUtils::ReleaseDX9Ex();
-	WyphonUtils::ReleaseGLDXInterop();
 
-	DestroyWyphonPartner(m_hWyphonPartner);
+		// close dx device and gl/dx interop device
+	WyphonUtils::ReleaseDevice(m_hWyphonDevice);
 
 	return FF_SUCCESS;
 }
 
 DWORD RRImportWyphon::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 {
-	UpdateTexture();
+	CheckForTextureUpdate();
 
 	if ( m_glTextureHandle ) {
 		// lock and bind the gl-dx linked texture
@@ -206,19 +211,29 @@ DWORD RRImportWyphon::SetParameter(const SetParameterStruct* pParam)
 {
 	if (pParam != NULL) {
 		
-		switch (pParam->ParameterNumber) {
+	BOOL bChanged;
+
+	switch (pParam->ParameterNumber) {
 
 		case FFPARAM_WyphonApplicationName:
-			strcpy_s( m_WyphonApplicationName, (char*) pParam->NewParameterValue);
-//			m_WyphonConnector.setSharedMemoryName(m_WyphonApplicationName);
+			bChanged = strcmp( m_WyphonApplicationName, (char*) pParam->NewParameterValue ) != 0;
+			if ( bChanged ) {
+				strcpy_s( m_WyphonApplicationName, (char*) pParam->NewParameterValue);
+				mbstowcs( m_WyphonApplicationNameT, m_WyphonApplicationName, WYPHON_MAX_DESCRIPTION_LENGTH+1 ); // also keep wchar_t version up to date
+				RetrieveTextureInfo();
+			}
 			break;
 		case FFPARAM_WyphonTextureDescription:
-			strcpy_s( m_WyphonTextureDescription, (char*) pParam->NewParameterValue);
-//			m_WyphonConnector.setSharedMemoryName(m_WyphonTextureDescription);
+			bChanged = strcmp( m_WyphonTextureDescription, (char*) pParam->NewParameterValue ) != 0;
+			if ( bChanged ) {
+				strcpy_s( m_WyphonTextureDescription, (char*) pParam->NewParameterValue);
+				mbstowcs( m_WyphonTextureDescriptionT, m_WyphonTextureDescription, WYPHON_MAX_DESCRIPTION_LENGTH+1 ); // also keep wchar_t version up to date
+				RetrieveTextureInfo();
+			}
 			break;
 		case FFPARAM_Reload:
 			if ( pParam->NewParameterValue ) {
-//				m_WyphonConnector.Reload();
+				RetrieveTextureInfo();
 			}
 			break;
 
@@ -233,8 +248,10 @@ DWORD RRImportWyphon::SetParameter(const SetParameterStruct* pParam)
 	return FF_FAIL;
 }
 
-DWORD RRImportWyphon::UpdateTexture() {
+DWORD RRImportWyphon::CheckForTextureUpdate() {
 	if ( m_bTextureNeedsUpdate ) {
+		m_bTextureNeedsUpdate = FALSE;
+
 		if ( m_glTextureHandle ) { // an old texture is connected. disconnect it
 			WyphonUtils::ReleaseLinkedGLTexture(m_glTextureName, m_glTextureHandle);
 		}
@@ -244,9 +261,41 @@ DWORD RRImportWyphon::UpdateTexture() {
 												(HANDLE) m_WyphonTextureInfo.hSharedTexture, m_glTextureName, m_glTextureHandle);
 
 		}
-		m_bTextureNeedsUpdate = FALSE;
 	}
 	return FF_SUCCESS;
+}
+
+BOOL RRImportWyphon::RetrieveTextureInfo() {
+	if ( m_hWyphonPartner == NULL ) { // initial condition
+		return FALSE;
+	}
+
+		// for the case that we don't get a matching texture: clear everything and update
+	ZeroMemory(&m_WyphonTextureInfo, sizeof(m_WyphonTextureInfo));
+	m_bTextureNeedsUpdate = TRUE;
+
+	unsigned __int32 wyphonPartnerId = Wyphon::getPartnerIdByName(m_hWyphonPartner, m_WyphonApplicationNameT);
+	if ( !wyphonPartnerId ) {
+		return FALSE;
+	}
+	HANDLE hSharedTexture = Wyphon::getShareHandleByDescription(m_hWyphonPartner, wyphonPartnerId, m_WyphonTextureDescriptionT);
+	if ( !hSharedTexture ) {
+		return FALSE;
+	}
+
+	Wyphon::WyphonD3DTextureInfo WyphonTextureInfo;	
+	BOOL bRes = GetD3DTextureInfo(m_hWyphonPartner, hSharedTexture, wyphonPartnerId, WyphonTextureInfo.width, WyphonTextureInfo.height, WyphonTextureInfo.format, WyphonTextureInfo.usage, WyphonTextureInfo.description, WYPHON_MAX_DESCRIPTION_LENGTH+1 );
+	if ( !bRes ) {
+		return FALSE;
+	}
+
+		// we found the texture
+	WyphonTextureInfo.partnerId = wyphonPartnerId;
+	WyphonTextureInfo.hSharedTexture = (unsigned __int32) hSharedTexture;
+
+	m_WyphonTextureInfo = WyphonTextureInfo;
+
+	return TRUE;
 }
 
 /**
@@ -257,8 +306,8 @@ DWORD RRImportWyphon::NotifySharingStarted(HANDLE wyphonPartnerHandle, WyphonD3D
 	LPCTSTR appName = Wyphon::GetWyphonPartnerName(wyphonPartnerHandle, WyphonTextureInfo.partnerId);
 
 		// if both, app name and texture name match
-	if ( MatchWyphonString( WyphonTextureInfo.description, m_WyphonTextureDescription ) &&
-		 MatchWyphonString( appName, m_WyphonApplicationName )) {
+	if ( MatchWyphonString( WyphonTextureInfo.description, m_WyphonTextureDescriptionT ) &&
+		 MatchWyphonString( appName, m_WyphonApplicationNameT )) {
 		
 			 // adopt new texture
 		m_WyphonTextureInfo = WyphonTextureInfo;
@@ -272,21 +321,19 @@ DWORD RRImportWyphon::NotifySharingStopped(HANDLE wyphonPartnerHandle, WyphonD3D
 	m_WyphonTextureInfo = WyphonTextureInfo;
 
 	if ( WyphonTextureInfo.hSharedTexture == m_WyphonTextureInfo.hSharedTexture ) {
-			// OH NO! the current texture is not shared any more
-		ZeroMemory(&m_WyphonTextureInfo, sizeof(m_WyphonTextureInfo));
-		m_bTextureNeedsUpdate = TRUE; // we're still inside wyphon thread (callback), the texture can only be handled in the main thread. next loop will take care of this.
+			/* OH NO! the current texture is not shared any more
+			 * - but perhaps there is another texture with the same name that fits... so try to get it
+			 */
+		RetrieveTextureInfo();
+		// we're still inside wyphon thread (callback), the texture can only be handled in the main thread. next loop will take care of this.
 	}
 
 	return FF_SUCCESS;
 }
 
-BOOL RRImportWyphon::MatchWyphonString(LPCTSTR objectStringW, LPCSTR filterStringMB) {
-		// convert to multibyte
-	char objectStringMB[WYPHON_MAX_DESCRIPTION_LENGTH+1];
-	wcstombs( objectStringMB, objectStringW, WYPHON_MAX_DESCRIPTION_LENGTH+1 );
-
-	BOOL equal = _strcmpi( objectStringMB, filterStringMB ) == 0;
-	BOOL noFilter = strlen( filterStringMB ) == 0;
+BOOL RRImportWyphon::MatchWyphonString(LPCTSTR objectString, LPCTSTR filterString) {
+	BOOL equal = wcscmp( objectString, filterString ) == 0;
+	BOOL noFilter = wcslen( filterString ) == 0;
 
 	return equal || noFilter;
 }
