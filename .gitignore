@@ -4,6 +4,7 @@ Include/
 Project/Debug/
 Project/Release/
 
+/Binaries/RR_ImportWyphon_debug.dll
 *.opensdf
 *.vcxproj.user
 
