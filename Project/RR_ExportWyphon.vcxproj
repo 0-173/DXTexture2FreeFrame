@@ -56,55 +56,56 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>..\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;FFGLHEAT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
-      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <CompileAsManaged>false</CompileAsManaged>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>OpenGL32.lib;d3d9.lib;..\..\..\Wyphon\Debug\Wyphon.lib;..\..\..\Wyphon\Debug\WyphonUtils.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>../Binaries/RR_ExportWyphon_debug.dll</OutputFile>
       <ModuleDefinitionFile>FFGLPlugins.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <ProgramDatabaseFile>$(OutDir)FFGLHeat.pdb</ProgramDatabaseFile>
+      <ProgramDatabaseFile>$(OutDir)RR_ExportWyphon.pdb</ProgramDatabaseFile>
       <SubSystem>Windows</SubSystem>
-      <ImportLibrary>$(OutDir)FFGLHeat.lib</ImportLibrary>
+      <ImportLibrary>$(OutDir)RR_ExportWyphon.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
+      <AssemblyDebug>true</AssemblyDebug>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
       <AdditionalIncludeDirectories>..\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;FFGLHEAT_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader />
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>OpenGL32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>OpenGL32.lib;..\..\..\Wyphon\Debug\Wyphon.lib;..\..\..\Wyphon\Debug\WyphonUtils.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>../Binaries/RR_ExportWyphon.dll</OutputFile>
       <ModuleDefinitionFile>FFGLPlugins.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
       <OptimizeReferences>true</OptimizeReferences>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <ImportLibrary>$(OutDir)FFGLHeat.lib</ImportLibrary>
+      <ImportLibrary>$(OutDir)RR_ExportWyphon.lib</ImportLibrary>
       <TargetMachine>MachineX86</TargetMachine>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="..\Source\Common\FFGLExtensions.cpp" />
-    <ClCompile Include="..\Source\dxConnector.cpp" />
     <ClCompile Include="..\Source\PluginBase\FFGL.cpp" />
     <ClCompile Include="..\Source\PluginBase\FFGLPluginInfo.cpp" />
     <ClCompile Include="..\Source\PluginBase\FFGLPluginInfoData.cpp" />
     <ClCompile Include="..\Source\PluginBase\FFGLPluginManager.cpp" />
     <ClCompile Include="..\Source\PluginBase\FFGLPluginSDK.cpp" />
-    <ClCompile Include="..\Source\RR-DXGLBridge.cpp" />
+    <ClCompile Include="..\Source\RR-ExportWyphon.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
