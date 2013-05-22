@@ -38,7 +38,6 @@
 
 #include <FFGLShader.h>
 #include "PluginBase/FFGLPluginSDK.h"
-//#include "wyphonConnector.h"
 #include "../../../Wyphon/WyphonUtils/WyphonUtils.h"
 
 

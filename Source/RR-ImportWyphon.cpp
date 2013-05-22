@@ -258,7 +258,7 @@ DWORD RRImportWyphon::CheckForTextureUpdate() {
 		if ( m_WyphonTextureInfo.hSharedTexture ) { // connect the new texture, if handle <> NULL (otherwise it has been disconnected)
 
 			WyphonUtils::CreateLinkedGLTexture( m_WyphonTextureInfo.width, m_WyphonTextureInfo.height, m_WyphonTextureInfo.usage, m_WyphonTextureInfo.format,
-												(HANDLE) m_WyphonTextureInfo.hSharedTexture, m_glTextureName, m_glTextureHandle);
+												(HANDLE &) m_WyphonTextureInfo.hSharedTexture, m_glTextureName, m_glTextureHandle);
 
 		}
 	}
