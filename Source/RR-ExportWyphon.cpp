@@ -72,7 +72,7 @@ RRExportWyphon::RRExportWyphon()
  m_initResources(1),
  m_maxCoordsLocation(-1)
 {
-	// Input properties
+	// This is the number of textures (not the number of parameters!)
 	SetMinInputs(1);
 	SetMaxInputs(1);
 
@@ -167,19 +167,19 @@ DWORD RRExportWyphon::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
 	glBegin(GL_QUADS);
 		//lower left
-		glTexCoord2d(0.0, maxCoords.t);
+		glTexCoord2d(0.0, 0.0);
 		glVertex2f(-1,-1);
 
 		//upper left
-		glTexCoord2d(0.0, 0.0);
+		glTexCoord2d(0.0, maxCoords.t);
 		glVertex2f(-1,1);
 
 		//upper right
-		glTexCoord2d(maxCoords.s, 0.0);
+		glTexCoord2d(maxCoords.s, maxCoords.t);
 		glVertex2f(1,1);
 
 		//lower right
-		glTexCoord2d(maxCoords.s, maxCoords.t);
+		glTexCoord2d(maxCoords.s, 0.0);
 		glVertex2f(1,-1);
 	glEnd();
   

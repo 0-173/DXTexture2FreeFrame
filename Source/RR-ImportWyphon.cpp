@@ -73,9 +73,9 @@ RRImportWyphon::RRImportWyphon()
  m_initResources(1),
  m_maxCoordsLocation(-1)
 {
-	// Input properties
-	SetMinInputs(3);
-	SetMaxInputs(3);
+	// This is the number of textures (not the number of parameters!)
+	SetMinInputs(1);
+	SetMaxInputs(1);
 
 	// Parameters
 
@@ -160,19 +160,19 @@ DWORD RRImportWyphon::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
 		glBegin(GL_QUADS);
 			//lower left
-			glTexCoord2d(0.0, 1.0);
+			glTexCoord2d(0.0, 0.0);
 			glVertex2f(-1,-1);
 
 			//upper left
-			glTexCoord2d(0.0, 0.0);
+			glTexCoord2d(0.0, 1.0);
 			glVertex2f(-1,1);
 
 			//upper right
-			glTexCoord2d(1.0, 0.0);
+			glTexCoord2d(1.0, 1.0);
 			glVertex2f(1,1);
 
 			//lower right
-			glTexCoord2d(1.0, 1.0);
+			glTexCoord2d(1.0, 0.0);
 			glVertex2f(1,-1);
 		glEnd();
 
