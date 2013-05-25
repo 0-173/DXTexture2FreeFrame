@@ -87,7 +87,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>OpenGL32.lib;..\..\..\Wyphon\Debug\Wyphon.lib;..\..\..\Wyphon\Debug\WyphonUtils.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>OpenGL32.lib;..\..\..\Wyphon\Release\Wyphon.lib;..\..\..\Wyphon\Release\WyphonUtils.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <OutputFile>../Binaries/RR_ImportWyphon.dll</OutputFile>
       <ModuleDefinitionFile>FFGLPlugins.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
