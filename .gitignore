@@ -3,7 +3,7 @@ Source/Common/
 Include/
 Project/Debug/
 Project/Release/
-
+Project/ipch/
 /Binaries/RR_ImportWyphon_debug.dll
 *.opensdf
 *.vcxproj.user

@@ -52,16 +52,22 @@ using namespace WyphonUtils;
 static CFFGLPluginInfo PluginInfo ( 
 	RRExportWyphon::CreateInstance,	// Create method
 	"WYEX",								// Plugin unique ID											
-	"AAAWyphonEx (RR)",					// Plugin name											
+	"Wyphon Out (RR)",					// Plugin name											
 	1,						   			// API major version number 													
 	000,								  // API minor version number	
 	1,										// Plugin major version number
 	000,									// Plugin minor version number
 	FF_EFFECT,						// Plugin type
-	"Wyphon Texture Bridge",	// Plugin description
+	"Wyphon Out (RR)",	// Plugin description
 	"by Elio / www.r-revue.de" // About
 );
 
+
+#define READ_FRAMEBUFFER_EXT                0x8CA8
+#define DRAW_FRAMEBUFFER_EXT                0x8CA9
+
+typedef void   (APIENTRY *glBlitFramebufferEXTPROC) (GLint srcX0,GLint srcY0,GLint srcX1,GLint srcY1,GLint dstX0,GLint dstY0,GLint dstX1,GLint dstY1,GLbitfield mask,GLenum filter);
+glBlitFramebufferEXTPROC glBlitFramebufferEXT;
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Constructor and destructor
@@ -102,6 +108,14 @@ DWORD RRExportWyphon::InitGL(const FFGLViewportStruct *vp)
 	//initialize gl extensions and
 	//make sure required features are supported
 	m_extensions.Initialize();
+	try { // load additional function for FBO buffer copying
+		glBlitFramebufferEXT = (glBlitFramebufferEXTPROC) wglGetProcAddress("glBlitFramebufferEXT");
+	}
+	catch (...)
+	{
+		MessageBox( NULL, TEXT("OpenGL Extension Failiure: glBlitFramebufferEXT() not available."), TEXT("OpenGL Extension Failiure"), MB_OK );
+		return FF_FAIL;
+	}
 
 	// generate framebuffer object for copying textures
 	m_extensions.glGenFramebuffersEXT(1, &m_fbo);
@@ -137,6 +151,8 @@ DWORD RRExportWyphon::DeInitGL()
 		WyphonUtils::ReleaseLinkedGLTexture(m_glTextureName, m_glTextureHandle);
 	}
 
+	m_extensions.glDeleteFramebuffersEXT(1, &m_fbo);
+
 		// close dx device and gl/dx interop device
 	WyphonUtils::ReleaseDevice(m_hWyphonDevice);
 
@@ -155,6 +171,7 @@ DWORD RRExportWyphon::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 	glBindTexture(GL_TEXTURE_2D, InputTexture.Handle);
 
 	//enable texturemapping
+	glPushAttrib(GL_TEXTURE_2D | GL_ENABLE_BIT );
 	glEnable(GL_TEXTURE_2D);
 
 	//get the max s,t that correspond to the 
@@ -184,36 +201,33 @@ DWORD RRExportWyphon::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 	glEnd();
   
 	//disable texturemapping
-	glDisable(GL_TEXTURE_2D);
- 
-	if ( !m_glTextureHandle ) {
-			// unbind the drawn texture
-		glBindTexture(GL_TEXTURE_2D, 0);
-	} else {
-		/* Assume "fbo" is a name of a FBO created using glGenFramebuffersEXT(1, &fbo),
-		 * and width/height are the dimensions of the texture, respectively.
-		 * "tex_src" is the name of the source texture, and
-		 * "tex_dst" is the name of the destination texture, which should have been
-		 * already created */ 
+	glPopAttrib();
+	// unbind the drawn texture
+	glBindTexture(GL_TEXTURE_2D, 0);
 
+	if ( m_glTextureHandle ) {
 		/*** COPY THE INPUT TEXTURE TO SHARED TEXTURE ****/
-		/// bind the FBO
-		m_extensions.glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_fbo);
-		/// attach the source texture to the fbo
-		m_extensions.glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT,
-			GL_TEXTURE_2D, InputTexture.Handle, 0);
-
-		// lock and bind destination texture
-		glBindTexture(GL_TEXTURE_2D, m_glTextureName);
+		
 		WyphonUtils::LockGLTexture(m_glTextureHandle);
+			// bind the FBO (for both, READ_FRAMEBUFFER_EXT and DRAW_FRAMEBUFFER_EXT)
+		m_extensions.glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_fbo);
 
-		/// copy from framebuffer (here, the FBO!) to the bound texture
-		glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0,m_width, m_height);
-		glBindTexture(GL_TEXTURE_2D, 0);
-		// unlock destination texture (but do not unbind it, we need it for drawing)
-		WyphonUtils::UnlockGLTexture(m_glTextureHandle);
-		/// unbind the FBO
+			// attach source and target textures to different attachment points
+		m_extensions.glFramebufferTexture2DEXT(READ_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT,
+			GL_TEXTURE_2D, InputTexture.Handle, 0);
+		m_extensions.glFramebufferTexture2DEXT(DRAW_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT,
+			GL_TEXTURE_2D, m_glTextureName, 0);
+		glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
+		glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
+
+			// copy one texture buffer to the other while flipping upside down (OpenGL and DirectX have different texture origins)
+		glBlitFramebufferEXT(0, 0, m_width, m_height,
+                       0, m_height, m_width, 0,
+                       GL_COLOR_BUFFER_BIT,
+                       GL_NEAREST);
+		/// unbind the FBO and unlock the texture
 		m_extensions.glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+		WyphonUtils::UnlockGLTexture(m_glTextureHandle);
 	}
  
 	return FF_SUCCESS;

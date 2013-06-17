@@ -53,13 +53,13 @@ using namespace Wyphon;
 static CFFGLPluginInfo PluginInfo ( 
 	RRImportWyphon::CreateInstance,	// Create method
 	"WYIM",								// Plugin unique ID											
-	"Wyphon (RR)",					// Plugin name											
+	"Wyphon In (RR)",					// Plugin name											
 	1,						   			// API major version number 													
 	000,								  // API minor version number	
 	1,										// Plugin major version number
 	000,									// Plugin minor version number
 	FF_SOURCE,						// Plugin type
-	"Wyphon Texture Bridge",	// Plugin description
+	"Wyphon In (RR)",	// Plugin description
 	"by Elio / www.r-revue.de" // About
 );
 
@@ -158,21 +158,21 @@ DWORD RRImportWyphon::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 		//the texture colors as they are)
 		glColor4f(1.f, 1.f, 1.f, 1.f);
 
-		glBegin(GL_QUADS);
+		glBegin(GL_QUADS); // DirectX generated textures are flipped upside down compared to OpenGL. Do inverse coordinate mapping to fix that:
 			//lower left
-			glTexCoord2d(0.0, 0.0);
+			glTexCoord2d(0.0, 1.0);
 			glVertex2f(-1,-1);
 
 			//upper left
-			glTexCoord2d(0.0, 1.0);
+			glTexCoord2d(0.0, 0.0);
 			glVertex2f(-1,1);
 
 			//upper right
-			glTexCoord2d(1.0, 1.0);
+			glTexCoord2d(1.0, 0.0);
 			glVertex2f(1,1);
 
 			//lower right
-			glTexCoord2d(1.0, 0.0);
+			glTexCoord2d(1.0, 1.0);
 			glVertex2f(1,-1);
 		glEnd();
 
@@ -274,11 +274,11 @@ BOOL RRImportWyphon::RetrieveTextureInfo() {
 	ZeroMemory(&m_WyphonTextureInfo, sizeof(m_WyphonTextureInfo));
 	m_bTextureNeedsUpdate = TRUE;
 
-	unsigned __int32 wyphonPartnerId = Wyphon::getPartnerIdByName(m_hWyphonPartner, m_WyphonApplicationNameT);
+	unsigned __int32 wyphonPartnerId = Wyphon::GetPartnerIdByName(m_hWyphonPartner, m_WyphonApplicationNameT);
 	if ( !wyphonPartnerId ) {
 		return FALSE;
 	}
-	HANDLE hSharedTexture = Wyphon::getShareHandleByDescription(m_hWyphonPartner, wyphonPartnerId, m_WyphonTextureDescriptionT);
+	HANDLE hSharedTexture = Wyphon::GetShareHandleByDescription(m_hWyphonPartner, wyphonPartnerId, m_WyphonTextureDescriptionT);
 	if ( !hSharedTexture ) {
 		return FALSE;
 	}
