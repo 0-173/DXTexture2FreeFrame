@@ -100,7 +100,7 @@ protected:
 
 	// Wyphon's GL Texture
 	GLuint							m_glTextureName;
-	HANDLE							m_glTextureHandle;
+	HANDLE							m_hInteropObject;
 
 	FFGLExtensions					m_extensions;
 	GLint							m_maxCoordsLocation;

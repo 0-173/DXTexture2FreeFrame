@@ -91,7 +91,7 @@ RRImportWyphon::RRImportWyphon()
 	SetParamInfo(FFPARAM_Reload, "Update", FF_TYPE_EVENT, false );
 
 	m_hWyphonPartner = NULL;
-	m_glTextureHandle = NULL;
+	m_hInteropObject = NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -133,8 +133,8 @@ DWORD RRImportWyphon::DeInitGL()
 		// tell everybody that we're off line
 	DestroyWyphonPartner(m_hWyphonPartner);
 
-	if ( m_glTextureHandle ) { // release any active texture
-		WyphonUtils::ReleaseLinkedGLTexture(m_glTextureName, m_glTextureHandle);
+	if ( m_hInteropObject ) { // release any active texture
+		WyphonUtils::ReleaseLinkedGLTexture(m_glTextureName, m_hInteropObject);
 	}
 
 		// close dx device and gl/dx interop device
@@ -147,9 +147,9 @@ DWORD RRImportWyphon::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 {
 	CheckForTextureUpdate();
 
-	if ( m_glTextureHandle ) {
+	if ( m_hInteropObject ) {
 		// lock and bind the gl-dx linked texture
-		WyphonUtils::LockGLTexture(m_glTextureHandle);
+		WyphonUtils::LockInteropObject(m_hInteropObject);
 		glBindTexture(GL_TEXTURE_2D, m_glTextureName);
 		//enable texturemapping
 		glEnable(GL_TEXTURE_2D);
@@ -179,7 +179,7 @@ DWORD RRImportWyphon::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 		// unbind the drawn texture
 		glBindTexture(GL_TEXTURE_2D, 0);
 		// unlock dx object
-		WyphonUtils::UnlockGLTexture(m_glTextureHandle);
+		WyphonUtils::UnlockInteropObject(m_hInteropObject);
 
 		//disable texturemapping
 		glDisable(GL_TEXTURE_2D);
@@ -252,13 +252,13 @@ DWORD RRImportWyphon::CheckForTextureUpdate() {
 	if ( m_bTextureNeedsUpdate ) {
 		m_bTextureNeedsUpdate = FALSE;
 
-		if ( m_glTextureHandle ) { // an old texture is connected. disconnect it
-			WyphonUtils::ReleaseLinkedGLTexture(m_glTextureName, m_glTextureHandle);
+		if ( m_hInteropObject ) { // an old texture is connected. disconnect it
+			WyphonUtils::ReleaseLinkedGLTexture(m_glTextureName, m_hInteropObject);
 		}
 		if ( m_WyphonTextureInfo.hSharedTexture ) { // connect the new texture, if handle <> NULL (otherwise it has been disconnected)
 
 			WyphonUtils::CreateLinkedGLTexture( m_WyphonTextureInfo.width, m_WyphonTextureInfo.height, m_WyphonTextureInfo.usage, m_WyphonTextureInfo.format,
-												(HANDLE &) m_WyphonTextureInfo.hSharedTexture, m_glTextureName, m_glTextureHandle);
+												(HANDLE &) m_WyphonTextureInfo.hSharedTexture, m_glTextureName, m_hInteropObject);
 
 		}
 	}

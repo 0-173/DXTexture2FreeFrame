@@ -63,12 +63,6 @@ static CFFGLPluginInfo PluginInfo (
 );
 
 
-#define READ_FRAMEBUFFER_EXT                0x8CA8
-#define DRAW_FRAMEBUFFER_EXT                0x8CA9
-
-typedef void   (APIENTRY *glBlitFramebufferEXTPROC) (GLint srcX0,GLint srcY0,GLint srcX1,GLint srcY1,GLint dstX0,GLint dstY0,GLint dstX1,GLint dstY1,GLbitfield mask,GLenum filter);
-glBlitFramebufferEXTPROC glBlitFramebufferEXT;
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////
 //  Constructor and destructor
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -94,7 +88,7 @@ RRExportWyphon::RRExportWyphon()
 	SetParamInfo(FFPARAM_WyphonTextureDescription, "Sharing Name", FF_TYPE_TEXT, m_WyphonTextureDescription);
 
 	m_hWyphonPartner = NULL;
-	m_glTextureHandle = NULL;
+	m_hInteropObject = NULL;
 }
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -108,17 +102,8 @@ DWORD RRExportWyphon::InitGL(const FFGLViewportStruct *vp)
 	//initialize gl extensions and
 	//make sure required features are supported
 	m_extensions.Initialize();
-	try { // load additional function for FBO buffer copying
-		glBlitFramebufferEXT = (glBlitFramebufferEXTPROC) wglGetProcAddress("glBlitFramebufferEXT");
-	}
-	catch (...)
-	{
-		MessageBox( NULL, TEXT("OpenGL Extension Failiure: glBlitFramebufferEXT() not available."), TEXT("OpenGL Extension Failiure"), MB_OK );
-		return FF_FAIL;
-	}
 
 	// generate framebuffer object for copying textures
-	m_extensions.glGenFramebuffersEXT(1, &m_fbo);
 	m_width = vp->width;
 	m_height = vp->height;
 
@@ -147,11 +132,9 @@ DWORD RRExportWyphon::DeInitGL()
 		// tell everybody that we're off line
 	DestroyWyphonPartner(m_hWyphonPartner);
 
-	if ( m_glTextureHandle ) { // release any active texture
-		WyphonUtils::ReleaseLinkedGLTexture(m_glTextureName, m_glTextureHandle);
+	if ( m_hInteropObject ) { // release any active texture
+		WyphonUtils::ReleaseLinkedGLTexture(m_glTextureName, m_hInteropObject);
 	}
-
-	m_extensions.glDeleteFramebuffersEXT(1, &m_fbo);
 
 		// close dx device and gl/dx interop device
 	WyphonUtils::ReleaseDevice(m_hWyphonDevice);
@@ -205,29 +188,14 @@ DWORD RRExportWyphon::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 	// unbind the drawn texture
 	glBindTexture(GL_TEXTURE_2D, 0);
 
-	if ( m_glTextureHandle ) {
+	if ( m_hInteropObject ) {
 		/*** COPY THE INPUT TEXTURE TO SHARED TEXTURE ****/
-		
-		WyphonUtils::LockGLTexture(m_glTextureHandle);
-			// bind the FBO (for both, READ_FRAMEBUFFER_EXT and DRAW_FRAMEBUFFER_EXT)
-		m_extensions.glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, m_fbo);
+		WyphonUtils::CopyGLTexture( m_hWyphonDevice, m_hInteropObject, InputTexture.Handle, m_glTextureName, m_width, m_height, FALSE );
+			// restore the host's original FBO (if any) - because CopyGLTexture binds a different FBO
+		if ( pGL->HostFBO ) {
+			m_extensions.glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pGL->HostFBO);
+		}
 
-			// attach source and target textures to different attachment points
-		m_extensions.glFramebufferTexture2DEXT(READ_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT,
-			GL_TEXTURE_2D, InputTexture.Handle, 0);
-		m_extensions.glFramebufferTexture2DEXT(DRAW_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT1_EXT,
-			GL_TEXTURE_2D, m_glTextureName, 0);
-		glReadBuffer(GL_COLOR_ATTACHMENT0_EXT);
-		glDrawBuffer(GL_COLOR_ATTACHMENT1_EXT);
-
-			// copy one texture buffer to the other while flipping upside down (OpenGL and DirectX have different texture origins)
-		glBlitFramebufferEXT(0, 0, m_width, m_height,
-                       0, m_height, m_width, 0,
-                       GL_COLOR_BUFFER_BIT,
-                       GL_NEAREST);
-		/// unbind the FBO and unlock the texture
-		m_extensions.glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-		WyphonUtils::UnlockGLTexture(m_glTextureHandle);
 	}
  
 	return FF_SUCCESS;
@@ -306,10 +274,10 @@ DWORD RRExportWyphon::SetParameter(const SetParameterStruct* pParam)
 }
 
 BOOL RRExportWyphon::GenerateTexture() {
-	if ( m_glTextureHandle ) {
-		ReleaseLinkedGLTexture(m_glTextureName, m_glTextureHandle);
+	if ( m_hInteropObject ) {
+		ReleaseLinkedGLTexture(m_glTextureName, m_hInteropObject);
 	}
 	m_shareHandle = NULL; // means: create new shared texture
-	HRESULT res = CreateLinkedGLTexture(m_width, m_height, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, m_shareHandle, m_glTextureName, m_glTextureHandle);
+	HRESULT res = CreateLinkedGLTexture(m_width, m_height, D3DUSAGE_RENDERTARGET, D3DFMT_A8R8G8B8, m_shareHandle, m_glTextureName, m_hInteropObject);
 	return (res == S_OK);
 }
