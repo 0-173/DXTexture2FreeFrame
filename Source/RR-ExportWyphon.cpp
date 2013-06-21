@@ -190,7 +190,7 @@ DWORD RRExportWyphon::ProcessOpenGL(ProcessOpenGLStruct *pGL)
 
 	if ( m_hInteropObject ) {
 		/*** COPY THE INPUT TEXTURE TO SHARED TEXTURE ****/
-		WyphonUtils::CopyGLTexture( m_hWyphonDevice, m_hInteropObject, InputTexture.Handle, m_glTextureName, m_width, m_height, FALSE );
+		WyphonUtils::CopyGLTexture( m_hWyphonDevice, m_hInteropObject, InputTexture.Handle, m_glTextureName, m_width, m_height, TRUE );
 			// restore the host's original FBO (if any) - because CopyGLTexture binds a different FBO
 		if ( pGL->HostFBO ) {
 			m_extensions.glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, pGL->HostFBO);
