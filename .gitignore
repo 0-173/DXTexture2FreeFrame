@@ -5,6 +5,7 @@ Project/Debug/
 Project/Release/
 Project/ipch/
 /Binaries/RR_ImportWyphon_debug.dll
+/Binaries/RR_ExportWyphon_debug.dll
 *.opensdf
 *.vcxproj.user
 *.sdf
