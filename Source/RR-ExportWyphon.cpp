@@ -36,7 +36,7 @@
 #include <FFGL.h>
 #include <FFGLLib.h>
 #include <d3d9.h>
-#include "../../../Wyphon/Wyphon/Wyphon.h"
+#include <Wyphon/Wyphon.h>
 #include "RR-ExportWyphon.h"
 
 #define FFPARAM_WyphonApplicationName	(0)

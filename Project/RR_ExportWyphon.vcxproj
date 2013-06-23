@@ -42,20 +42,20 @@
     <_ProjectFileVersion>11.0.50727.1</_ProjectFileVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>Debug\</OutDir>
+    <OutDir>..\Debug\</OutDir>
     <IntDir>Debug\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <IncludePath>$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSDK_IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>Release\</OutDir>
+    <OutDir>..\Release\</OutDir>
     <IntDir>Release\</IntDir>
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>..\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\FFGLSDK_1_5\Include;..\..\..\FFGLSDK_1_5\Source\FFGLPlugins;..\..\Wyphon;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -66,8 +66,8 @@
       <CompileAsManaged>false</CompileAsManaged>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>OpenGL32.lib;d3d9.lib;..\..\..\Wyphon\Debug\Wyphon.lib;..\..\..\Wyphon\Debug\WyphonUtils.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>../Binaries/RR_ExportWyphon_debug.dll</OutputFile>
+      <AdditionalDependencies>OpenGL32.lib;d3d9.lib;..\..\Wyphon\Debug\Wyphon.lib;..\..\Wyphon\Debug\WyphonUtils.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)RR_ExportWyphon.dll</OutputFile>
       <ModuleDefinitionFile>FFGLPlugins.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <ProgramDatabaseFile>$(OutDir)RR_ExportWyphon.pdb</ProgramDatabaseFile>
@@ -79,7 +79,7 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <AdditionalIncludeDirectories>..\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>..\..\..\FFGLSDK_1_5\Include;..\..\..\FFGLSDK_1_5\Source\FFGLPlugins;..\..\Wyphon;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <PrecompiledHeader />
@@ -87,8 +87,8 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>OpenGL32.lib;..\..\..\Wyphon\Release\Wyphon.lib;..\..\..\Wyphon\Release\WyphonUtils.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <OutputFile>../Binaries/RR_ExportWyphon.dll</OutputFile>
+      <AdditionalDependencies>OpenGL32.lib;..\..\Wyphon\Release\Wyphon.lib;..\..\Wyphon\Release\WyphonUtils.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <OutputFile>$(OutDir)RR_ExportWyphon.dll</OutputFile>
       <ModuleDefinitionFile>FFGLPlugins.def</ModuleDefinitionFile>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <SubSystem>Windows</SubSystem>
@@ -99,12 +99,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\Source\Common\FFGLExtensions.cpp" />
-    <ClCompile Include="..\Source\PluginBase\FFGL.cpp" />
-    <ClCompile Include="..\Source\PluginBase\FFGLPluginInfo.cpp" />
-    <ClCompile Include="..\Source\PluginBase\FFGLPluginInfoData.cpp" />
-    <ClCompile Include="..\Source\PluginBase\FFGLPluginManager.cpp" />
-    <ClCompile Include="..\Source\PluginBase\FFGLPluginSDK.cpp" />
+    <ClCompile Include="..\..\..\FFGLSDK_1_5\Source\Common\FFGLExtensions.cpp" />
+    <ClCompile Include="..\..\..\FFGLSDK_1_5\Source\FFGLPlugins\FFGL.cpp" />
+    <ClCompile Include="..\..\..\FFGLSDK_1_5\Source\FFGLPlugins\FFGLPluginInfo.cpp" />
+    <ClCompile Include="..\..\..\FFGLSDK_1_5\Source\FFGLPlugins\FFGLPluginInfoData.cpp" />
+    <ClCompile Include="..\..\..\FFGLSDK_1_5\Source\FFGLPlugins\FFGLPluginManager.cpp" />
+    <ClCompile Include="..\..\..\FFGLSDK_1_5\Source\FFGLPlugins\FFGLPluginSDK.cpp" />
     <ClCompile Include="..\Source\RR-ExportWyphon.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

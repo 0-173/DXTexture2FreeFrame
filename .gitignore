@@ -4,8 +4,10 @@ Include/
 Project/Debug/
 Project/Release/
 Project/ipch/
-/Binaries/RR_ImportWyphon_debug.dll
-/Binaries/RR_ExportWyphon_debug.dll
+Debug/
+Release/*.exp
+Release/*.lib
+Release/*.pdb
 *.opensdf
 *.vcxproj.user
 *.sdf
